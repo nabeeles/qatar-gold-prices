@@ -1,6 +1,6 @@
 const { getActiveProviders, savePrices } = require('./utils/db');
 const { scrapeWithPuppeteer } = require('./strategies/puppeteer');
-const { scrapeWithCheerio } = require('./strategies/cheerio');
+const { checkAndSendAlerts } = require('./utils/alerts');
 
 async function runScraper() {
   console.log('--- Starting Qatar Gold Price Scraper ---');
@@ -10,19 +10,19 @@ async function runScraper() {
     const providers = await getActiveProviders();
     console.log(`Found ${providers.length} active providers.`);
 
-    for (const provider of providers) {
-      let prices = null;
+    const allScrapedPrices = [];
 
+    for (const provider of providers) {
       try {
-        if (provider.scraping_type === 'direct') {
-          prices = await scrapeWithPuppeteer(provider);
-        } else if (provider.scraping_type === 'aggregator') {
-          prices = await scrapeWithCheerio(provider);
-        }
+        const prices = await scrapeWithPuppeteer(provider);
 
         if (prices && (prices['24k'] || prices['22k'])) {
           console.log(`✅ Extracted prices for ${provider.name}:`, prices);
           await savePrices(provider.id, prices);
+          
+          if (prices['24k']) allScrapedPrices.push({ karat: 24, price: parseFloat(prices['24k']) });
+          if (prices['22k']) allScrapedPrices.push({ karat: 22, price: parseFloat(prices['22k']) });
+          
           console.log(`💾 Saved to database.`);
         } else {
           console.warn(`⚠️  No prices found for ${provider.name}.`);
@@ -32,6 +32,20 @@ async function runScraper() {
       }
     }
 
+    // After all providers are scraped, check alerts using the averages
+    if (allScrapedPrices.length > 0) {
+        const uniqueKarats = [...new Set(allScrapedPrices.map(p => p.karat))];
+        const averages = uniqueKarats.map(k => {
+            const group = allScrapedPrices.filter(p => p.karat === k);
+            return {
+                karat: k,
+                price: group.reduce((acc, curr) => acc + curr.price, 0) / group.length
+            };
+        });
+        
+        await checkAndSendAlerts(averages);
+    }
+
     console.log('--- Scraper Run Finished ---');
   } catch (error) {
     console.error('CRITICAL ERROR:', error.message);
@@ -39,5 +53,4 @@ async function runScraper() {
   }
 }
 
-// Run the scraper
 runScraper();
