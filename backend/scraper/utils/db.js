@@ -22,22 +22,18 @@ async function getActiveProviders() {
 async function savePrices(providerId, prices) {
   const records = [];
   
-  if (prices['24k']) {
+  // Dynamically map all available carats (24k, 22k, 21k, 18k, etc.)
+  Object.keys(prices).forEach(key => {
+    const karatMatch = key.match(/^(\d+)k$/i);
+    if (karatMatch && prices[key]) {
       records.push({
         provider_id: providerId,
-        karat: 24,
-        price: parseFloat(prices['24k']),
+        karat: parseInt(karatMatch[1]),
+        price: parseFloat(prices[key]),
         currency: 'QAR'
       });
-  }
-  if (prices['22k']) {
-      records.push({
-        provider_id: providerId,
-        karat: 22,
-        price: parseFloat(prices['22k']),
-        currency: 'QAR'
-      });
-  }
+    }
+  });
 
   if (records.length === 0) return;
 

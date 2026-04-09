@@ -1,8 +1,18 @@
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 export async function registerForPushNotificationsAsync() {
+  if (isExpoGo) {
+    console.log('Push notifications are not supported in Expo Go (SDK 53+). Please use a development build.');
+    return null;
+  }
+
+  // Dynamic import to prevent top-level resolution errors in Expo Go
+  const Notifications = require('expo-notifications');
+
   let token;
 
   if (Platform.OS === 'android') {
@@ -26,7 +36,7 @@ export async function registerForPushNotificationsAsync() {
       return;
     }
     token = (await Notifications.getExpoPushTokenAsync({
-        projectId: process.env.EXPO_PUBLIC_PROJECT_ID, // Ensure you set this in .env
+        projectId: Constants.expoConfig?.extra?.eas?.projectId,
     })).data;
   } else {
     console.log('Must use physical device for Push Notifications');

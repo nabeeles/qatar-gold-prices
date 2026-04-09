@@ -3,45 +3,49 @@ import { View, Text } from 'react-native';
 import { GoldPrice } from '../hooks/useGoldPrices';
 
 interface PriceCardProps {
-  item: GoldPrice;
+  provider: {
+    name: string;
+    scraped_at: string;
+    prices: { karat: number; price: number }[];
+  };
 }
 
-export function PriceCard({ item }: PriceCardProps) {
-  const formattedDate = new Date(item.scraped_at).toLocaleTimeString([], { 
+export function PriceCard({ provider }: PriceCardProps) {
+  const formattedDate = provider.scraped_at ? new Date(provider.scraped_at).toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit' 
-  });
+  }) : '--:--';
+
+  // Sort prices by karat descending (24, 22, 21, 18)
+  const sortedPrices = [...provider.prices].sort((a, b) => b.karat - a.karat);
 
   return (
-    <View className="bg-[#1A1A1A] border border-[#333] rounded-2xl p-5 mb-4 shadow-lg shadow-black">
-      <View className="flex-row justify-between items-center mb-3">
-        <Text className="text-muted text-xs uppercase tracking-widest font-medium">
-          {item.provider.name}
+    <View style={{ backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', borderRadius: 16, padding: 20, marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Text style={{ color: '#A0A0A0', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '500' }}>
+          {provider.name}
         </Text>
-        <Text className="text-muted text-[10px]">
+        <Text style={{ color: '#A0A0A0', fontSize: 10 }}>
           {formattedDate}
         </Text>
       </View>
       
-      <View className="flex-row justify-between items-end">
-        <View>
-          <Text className="text-champagne text-3xl font-bold tracking-tighter">
-            {item.karat}K
-          </Text>
-          <Text className="text-white opacity-60 text-xs">Purity</Text>
-        </View>
-        
-        <View className="items-end">
-          <View className="flex-row items-baseline">
-            <Text className="text-primary text-4xl font-bold">
-              {item.price}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        {sortedPrices.map((p, index) => (
+          <View key={p.karat} style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={{ color: '#F1E5AC', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>
+              {p.karat}K
             </Text>
-            <Text className="text-primary text-sm font-medium ml-1">
-              QAR
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+              <Text style={{ color: '#D4AF37', fontSize: 24, fontWeight: 'bold' }}>
+                {p.price}
+              </Text>
+            </View>
+            {index === 0 && (
+              <Text style={{ color: '#FFFFFF', opacity: 0.4, fontSize: 8, marginTop: 4 }}>QAR / GRAM</Text>
+            )}
           </View>
-          <Text className="text-white opacity-60 text-xs">Per Gram</Text>
-        </View>
+        ))}
       </View>
     </View>
   );

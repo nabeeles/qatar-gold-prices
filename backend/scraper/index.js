@@ -16,12 +16,16 @@ async function runScraper() {
       try {
         const prices = await scrapeWithPuppeteer(provider);
 
-        if (prices && (prices['24k'] || prices['22k'])) {
+        if (prices && Object.keys(prices).some(k => k.match(/\d+k/i) && prices[k])) {
           console.log(`✅ Extracted prices for ${provider.name}:`, prices);
           await savePrices(provider.id, prices);
           
-          if (prices['24k']) allScrapedPrices.push({ karat: 24, price: parseFloat(prices['24k']) });
-          if (prices['22k']) allScrapedPrices.push({ karat: 22, price: parseFloat(prices['22k']) });
+          Object.keys(prices).forEach(key => {
+            const m = key.match(/^(\d+)k$/i);
+            if (m && prices[key]) {
+              allScrapedPrices.push({ karat: parseInt(m[1]), price: parseFloat(prices[key]) });
+            }
+          });
           
           console.log(`💾 Saved to database.`);
         } else {

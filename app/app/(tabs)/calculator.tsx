@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLatestPrices } from '../../hooks/useGoldPrices';
-import { Calculator as CalcIcon, ChevronRight } from 'lucide-react-native';
+import { Calculator as CalcIcon } from 'lucide-react-native';
 
 const PURITIES = [
   { label: '24K', value: 24 },
@@ -14,12 +15,11 @@ export default function Calculator() {
   const [weight, setWeight] = useState('10');
   const [selectedPurity, setSelectedPurity] = useState(24);
 
-  // Calculate market average for the selected purity
   const currentRate = useMemo(() => {
-    if (!data) return 0;
+    if (!data || !Array.isArray(data)) return 0;
     const rates = data.filter(i => i.karat === selectedPurity);
     if (rates.length === 0) return 0;
-    return rates.reduce((acc, curr) => acc + curr.price, 0) / rates.length;
+    return rates.reduce((acc, curr) => acc + (Number(curr.price) || 0), 0) / rates.length;
   }, [data, selectedPurity]);
 
   const totalValue = useMemo(() => {
@@ -28,62 +28,69 @@ export default function Calculator() {
   }, [weight, currentRate]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1 px-6 pt-8">
-        <Text className="text-muted text-xs uppercase tracking-[4px] mb-1 font-semibold">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0A0A0A' }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40 }}>
+        <Text style={{ color: '#A0A0A0', fontSize: 12, textTransform: 'uppercase', letterSpacing: 4, marginBottom: 4, fontWeight: '600' }}>
           Estimation Tool
         </Text>
-        <Text className="text-white text-4xl font-bold mb-8">Calculator</Text>
+        <Text style={{ color: '#FFFFFF', fontSize: 36, fontWeight: 'bold', marginBottom: 32 }}>Calculator</Text>
 
         {/* Display Card */}
-        <View className="bg-[#1A1A1A] border border-[#333] rounded-3xl p-8 mb-8 items-center shadow-2xl">
-          <Text className="text-muted text-xs uppercase font-bold tracking-widest mb-2">
+        <View style={{ backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', borderRadius: 24, padding: 32, marginBottom: 32, alignItems: 'center' }}>
+          <Text style={{ color: '#A0A0A0', fontSize: 12, textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: 1, marginBottom: 8 }}>
             Estimated Value
           </Text>
-          <View className="flex-row items-baseline mb-1">
-            <Text className="text-primary text-5xl font-black">{totalValue}</Text>
-            <Text className="text-primary text-lg font-bold ml-2">QAR</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: 4 }}>
+            <Text style={{ color: '#D4AF37', fontSize: 48, fontWeight: '900' }}>{totalValue}</Text>
+            <Text style={{ color: '#D4AF37', fontSize: 18, fontWeight: 'bold', marginLeft: 8 }}>QAR</Text>
           </View>
-          <Text className="text-white/40 text-[10px]">Based on current market average</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>Based on current market average</Text>
         </View>
 
         {/* Input Section */}
-        <View className="space-y-6">
-          <View>
-            <Text className="text-white/60 text-xs font-bold uppercase mb-3 ml-1">
+        <View>
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 'bold', uppercase: 'true', marginBottom: 12, marginLeft: 4 }}>
               Gold Weight (Grams)
             </Text>
-            <View className="bg-[#1A1A1A] border border-[#333] rounded-2xl p-4 flex-row items-center">
+            <View style={{ backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
-                className="flex-1 text-white text-2xl font-bold"
+                style={{ flex: 1, color: '#FFFFFF', fontSize: 24, fontWeight: 'bold' }}
                 keyboardType="numeric"
                 value={weight}
                 onChangeText={setWeight}
                 placeholder="0.00"
                 placeholderTextColor="#444"
               />
-              <Text className="text-primary font-bold ml-2">g</Text>
+              <Text style={{ color: '#D4AF37', fontWeight: 'bold', marginLeft: 8 }}>g</Text>
             </View>
           </View>
 
-          <View className="mt-6">
-            <Text className="text-white/60 text-xs font-bold uppercase mb-3 ml-1">
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 'bold', uppercase: 'true', marginBottom: 12, marginLeft: 4 }}>
               Select Purity
             </Text>
-            <View className="flex-row justify-between">
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               {PURITIES.map((p) => (
                 <TouchableOpacity
                   key={p.value}
                   onPress={() => setSelectedPurity(p.value)}
-                  className={`flex-1 mx-1 py-4 rounded-2xl items-center border ${
-                    selectedPurity === p.value 
-                      ? 'bg-primary border-primary' 
-                      : 'bg-[#1A1A1A] border-[#333]'
-                  }`}
+                  style={{
+                    flex: 1,
+                    marginHorizontal: 4,
+                    paddingVertical: 16,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: selectedPurity === p.value ? '#D4AF37' : '#333',
+                    backgroundColor: selectedPurity === p.value ? '#D4AF37' : '#1A1A1A'
+                  }}
                 >
-                  <Text className={`font-bold text-lg ${
-                    selectedPurity === p.value ? 'text-black' : 'text-white'
-                  }`}>
+                  <Text style={{ 
+                    fontWeight: 'bold', 
+                    fontSize: 18,
+                    color: selectedPurity === p.value ? '#000000' : '#FFFFFF'
+                  }}>
                     {p.label}
                   </Text>
                 </TouchableOpacity>
@@ -93,18 +100,16 @@ export default function Calculator() {
         </View>
 
         {/* Info Box */}
-        <View className="mt-10 p-5 bg-white/5 rounded-2xl border border-white/5 flex-row items-center">
-          <View className="bg-primary/20 p-2 rounded-lg mr-4">
+        <View style={{ marginTop: 40, padding: 20, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ backgroundColor: 'rgba(212,175,55,0.2)', padding: 8, borderRadius: 8, marginRight: 16 }}>
             <CalcIcon size={20} color="#D4AF37" />
           </View>
-          <View className="flex-1">
-            <Text className="text-white/80 text-xs leading-5">
-              Current rate used: <Text className="text-primary font-bold">{currentRate.toFixed(2)} QAR/g</Text> for {selectedPurity}K gold.
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, lineHeight: 20 }}>
+              Current rate used: <Text style={{ color: '#D4AF37', fontWeight: 'bold' }}>{currentRate.toFixed(2)} QAR/g</Text> for {selectedPurity}K gold.
             </Text>
           </View>
         </View>
-        
-        <View className="h-20" />
       </ScrollView>
     </SafeAreaView>
   );
