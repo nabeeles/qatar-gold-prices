@@ -4,6 +4,17 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
+/**
+ * Registers the device for Expo Push Notifications.
+ * 
+ * Logic:
+ * 1. Checks if running in Expo Go (which has limited support for notifications in newer SDKs).
+ * 2. Requests user permission for push notifications if not already granted.
+ * 3. Configures Android notification channels (vibration, light color).
+ * 4. Retrieves the Expo Push Token using the project's EAS ID.
+ * 
+ * @returns {Promise<string|null>} - The Expo Push Token string or null if registration failed.
+ */
 export async function registerForPushNotificationsAsync() {
   if (isExpoGo) {
     console.log('Push notifications are not supported in Expo Go (SDK 53+). Please use a development build.');

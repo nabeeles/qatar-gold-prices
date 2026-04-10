@@ -2,6 +2,14 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { GoldPrice } from '../hooks/useGoldPrices';
 
+/**
+ * Props for the PriceCard component.
+ * 
+ * @property {Object} provider - Data for the gold price provider.
+ * @property {string} provider.name - Name of the provider (e.g., Al Fardan Exchange).
+ * @property {string} provider.scraped_at - Timestamp of the most recent scrape.
+ * @property {Array<Object>} provider.prices - List of karat/price objects.
+ */
 interface PriceCardProps {
   provider: {
     name: string;
@@ -10,6 +18,19 @@ interface PriceCardProps {
   };
 }
 
+/**
+ * A reusable React Native component to display current gold prices for a provider.
+ * 
+ * Layout Features:
+ * - Card-based design with a dark theme (#1A1A1A).
+ * - Displays the provider's name and the last update time.
+ * - Shows multiple gold karats (e.g., 24K, 22K) in a row.
+ * - Highlights prices in a gold-themed color (#D4AF37).
+ * - Automatically sorts prices by karat descending.
+ * 
+ * @param {PriceCardProps} props - Component properties.
+ * @returns {JSX.Element} - Rendered card UI.
+ */
 export function PriceCard({ provider }: PriceCardProps) {
   const formattedDate = provider.scraped_at ? new Date(provider.scraped_at).toLocaleTimeString([], { 
     hour: '2-digit', 

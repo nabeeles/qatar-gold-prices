@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
+/**
+ * Interface representing a gold price record from the database.
+ */
 export interface GoldPrice {
   id: number;
   karat: number;
@@ -12,6 +15,14 @@ export interface GoldPrice {
   };
 }
 
+/**
+ * React Query hook to fetch the most recent gold prices for all providers.
+ * 
+ * Fetches data from the `gold_prices` table in descending order of `scraped_at`.
+ * The data includes related provider names using a foreign key relationship.
+ * 
+ * @returns {Object} - React Query result containing an array of latest GoldPrice objects.
+ */
 export function useLatestPrices() {
   return useQuery({
     queryKey: ['latest-prices'],
@@ -37,6 +48,15 @@ export function useLatestPrices() {
   });
 }
 
+/**
+ * React Query hook to fetch historical gold price data for a specific karat.
+ * 
+ * Aggregates results by day, taking the average price for each day to provide 
+ * a cleaner trend for charts.
+ * 
+ * @param {number} karat - The gold karat to fetch history for (default is 24).
+ * @returns {Object} - React Query result containing an array of daily price averages.
+ */
 export function useHistoricalPrices(karat: number = 24) {
   return useQuery({
     queryKey: ['historical-prices', karat],

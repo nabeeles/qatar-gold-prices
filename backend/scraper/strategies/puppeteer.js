@@ -1,5 +1,22 @@
 const puppeteer = require('puppeteer');
 
+/**
+ * Scrapes gold prices using Puppeteer for the specified provider.
+ * 
+ * Strategy Overview:
+ * - Uses a generic Puppeteer instance with headless: true.
+ * - Navigates to the provider URL and waits for network stability.
+ * - Handles provider-specific interactions (e.g., selecting country QA for Malabar).
+ * - Executes an in-page script to extract prices for common gold karats (24k, 22k, 21k, 18k).
+ * - Implements specific selectors and parsing logic for known providers:
+ *   - Shine Jewelers: Table-based parsing or generic fallback label search.
+ *   - Al Fardan: Searches for text matching KARAT labels.
+ *   - GoodReturns: Parses an aggregator table for 1g prices.
+ *   - Malabar: Targets specific class names for different karats.
+ * 
+ * @param {Object} provider - Provider details (id, name, url).
+ * @returns {Promise<Object|null>} - A mapping of karats to prices (e.g., { '24k': 255.50 }) or null if extraction failed.
+ */
 async function scrapeWithPuppeteer(provider) {
   console.log(`[Puppeteer] Scraping ${provider.name}...`);
   const browser = await puppeteer.launch({ 

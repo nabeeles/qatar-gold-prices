@@ -1,8 +1,22 @@
 const { supabase } = require('./db');
 const { Expo } = require('expo-server-sdk');
 
+// Initialize the Expo SDK
 let expo = new Expo();
 
+/**
+ * Checks all active price alerts and sends push notifications for triggered ones.
+ * 
+ * Logic:
+ * 1. Fetches all active alerts from the price_alerts table.
+ * 2. Compares alert target prices with the latest average prices (per karat).
+ * 3. Supports two conditions: 'below' (price dropped) and 'above' (price rose).
+ * 4. For each triggered alert, constructs a push notification payload.
+ * 5. Uses the Expo SDK to send notifications in chunks.
+ * 6. Marks triggered alerts as inactive to prevent repeated notifications.
+ * 
+ * @param {Array<Object>} latestPrices - List of latest average prices (e.g., [{ karat: 24, price: 255 }]).
+ */
 async function checkAndSendAlerts(latestPrices) {
   console.log('--- Checking Price Alerts ---');
   

@@ -7,8 +7,16 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.');
 }
 
+/** 
+ * Authenticated Supabase client for database operations.
+ * Uses the service role key for full database access.
+ */
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+/**
+ * Fetches all active gold price providers from the providers table.
+ * @returns {Promise<Array<Object>>} - List of active provider records.
+ */
 async function getActiveProviders() {
   const { data, error } = await supabase
     .from('providers')
@@ -19,6 +27,16 @@ async function getActiveProviders() {
   return data;
 }
 
+/**
+ * Saves multiple gold price records for a specific provider.
+ * 
+ * - Parses price object to extract karat values (e.g., '24k' -> 24).
+ * - Inserts entries into the gold_prices table.
+ * - Updates the last_scraped_at timestamp in the providers table.
+ * 
+ * @param {number} providerId - The ID of the provider.
+ * @param {Object} prices - Mapping of karats to price strings.
+ */
 async function savePrices(providerId, prices) {
   const records = [];
   

@@ -2,6 +2,16 @@ const { getActiveProviders, savePrices } = require('./utils/db');
 const { scrapeWithPuppeteer } = require('./strategies/puppeteer');
 const { checkAndSendAlerts } = require('./utils/alerts');
 
+/**
+ * Main scraper entry point.
+ * 
+ * Flow:
+ * 1. Fetch all active gold price providers from Supabase.
+ * 2. For each provider, launch a Puppeteer instance to scrape the latest prices.
+ * 3. Save extracted prices (24k, 22k, 21k, 18k) to the gold_prices table.
+ * 4. After all scraping is complete, calculate the average price for each karat.
+ * 5. Trigger the alert system to check user-defined price alerts based on these averages.
+ */
 async function runScraper() {
   console.log('--- Starting Qatar Gold Price Scraper ---');
   console.log(`Time: ${new Date().toISOString()}`);

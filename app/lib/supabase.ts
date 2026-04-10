@@ -5,6 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
+/**
+ * Custom storage adapter for Supabase auth that persists user sessions 
+ * using Expo SecureStore.
+ */
 const ExpoSecureStoreAdapter = {
   getItem: (key: string) => {
     return SecureStore.getItemAsync(key);
@@ -17,6 +21,10 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
+/**
+ * Initialized Supabase client for the Expo mobile app.
+ * Configured with persistent auth and auto-refresh for long-running sessions.
+ */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: ExpoSecureStoreAdapter as any,
@@ -26,6 +34,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+/**
+ * Signs the user in anonymously to allow personalized features (like alerts) 
+ * without requiring traditional credentials.
+ * 
+ * @returns {Promise<Object>} - Object containing Supabase session data or error.
+ */
 export const signInAnonymously = async () => {
   const { data, error } = await supabase.auth.signInAnonymously();
   if (error) console.error('Error signing in anonymously:', error.message);

@@ -25,9 +25,16 @@ export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
+/**
+ * Root Layout of the Expo application.
+ * 
+ * Responsibilities:
+ * 1. Initializes the React Query client (`QueryClientProvider`).
+ * 2. Loads custom fonts and icon sets (SpaceMono, FontAwesome).
+ * 3. Handles anonymous authentication with Supabase on startup.
+ * 4. Manages the Splash Screen state (hides it after data is ready).
+ * 5. Provides global providers for Theming and Gesture Handling.
+ */
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
