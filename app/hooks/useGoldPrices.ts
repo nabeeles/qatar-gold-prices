@@ -35,8 +35,9 @@ export function useLatestPrices() {
           price,
           currency,
           scraped_at,
-          provider:providers(name)
+          provider:providers!inner(name, is_active)
         `)
+        .eq('provider.is_active', true)
         .order('scraped_at', { ascending: false });
 
       if (error) throw error;
