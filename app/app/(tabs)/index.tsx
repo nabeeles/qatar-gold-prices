@@ -39,7 +39,26 @@ export default function Dashboard() {
       }
     });
 
-    return Array.from(providerMap.values());
+    const sortedData = Array.from(providerMap.values()).sort((a, b) => {
+      const order = [
+        'Malabar',
+        'Joyalukkas',
+        'LivePriceOfGold',
+        'GoodReturns',
+        'Fardan'
+      ];
+      
+      const indexA = order.findIndex(name => a.name.includes(name));
+      const indexB = order.findIndex(name => b.name.includes(name));
+      
+      // If not in our list, put at the end
+      const posA = indexA === -1 ? 999 : indexA;
+      const posB = indexB === -1 ? 999 : indexB;
+      
+      return posA - posB;
+    });
+
+    return sortedData;
   }, [data]);
 
   const average24k = React.useMemo(() => {
