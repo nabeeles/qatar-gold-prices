@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHistoricalPrices } from '../../hooks/useGoldPrices';
@@ -11,9 +11,37 @@ const TIMEFRAMES = [
   { label: '1Y', value: '365d' },
 ];
 
+/**
+ * Trends Screen Component.
+ * 
+ * Displays historical gold price movements using interactive charts.
+ * Features:
+ * 1. Timeframe selection (1 Week, 1 Month, 1 Year).
+ * 2. Interactive line chart with price and date tooltips on scrub.
+ * 3. Dynamic market insights based on current trend data.
+ */
 export default function Trends() {
   const { data, isLoading, error } = useHistoricalPrices(24);
   const [selectedTimeframe, setSelectedTimeframe] = useState('30d');
+
+  // Filter and format data based on selected timeframe for the chart
+  const chartData = useMemo(() => {
+    if (!data || !Array.isArray(data) || data.length === 0) return [];
+    
+    const now = Date.now();
+    let cutoff = 0;
+    
+    if (selectedTimeframe === '7d') cutoff = now - (7 * 24 * 60 * 60 * 1000);
+    else if (selectedTimeframe === '30d') cutoff = now - (30 * 24 * 60 * 60 * 1000);
+    else if (selectedTimeframe === '365d') cutoff = now - (365 * 24 * 60 * 60 * 1000);
+    
+    return data
+      .filter(d => d.timestamp >= cutoff)
+      .map(d => ({
+        timestamp: d.timestamp,
+        value: Number(d.value)
+      }));
+  }, [data, selectedTimeframe]);
 
   if (isLoading) {
     return (
@@ -31,14 +59,6 @@ export default function Trends() {
     );
   }
 
-  // Ensure data exists and is in the correct format for Wagmi Charts
-  // [{ timestamp: number, value: number }]
-  const chartData = data && Array.isArray(data) && data.length > 1 ? data : [
-    { timestamp: Date.now() - 86400000 * 2, value: 560 },
-    { timestamp: Date.now() - 86400000, value: 565 },
-    { timestamp: Date.now(), value: 571 },
-  ];
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0A0A0A' }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -48,13 +68,8 @@ export default function Trends() {
           </Text>
           <Text style={{ color: '#FFFFFF', fontSize: 36, fontWeight: 'bold', marginBottom: 32 }}>Trends</Text>
 
-          {/* Chart Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 99, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-              <ChartIcon size={14} color="#D4AF37" />
-              <Text style={{ color: '#F1E5AC', fontSize: 12, fontWeight: 'bold', marginLeft: 8 }}>24K GOLD RATE</Text>
-            </View>
-            
+          {/* Timeframe Selector */}
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', backgroundColor: '#1A1A1A', padding: 4, borderRadius: 12, borderWidth: 1, borderColor: '#333' }}>
               {TIMEFRAMES.map((tf) => (
                 <TouchableOpacity
@@ -79,38 +94,60 @@ export default function Trends() {
             </View>
           </View>
 
-          {/* Interactive Chart - Wrapped in a View for stability */}
-          <View style={{ backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', borderRadius: 24, padding: 16, height: 350, justifyContent: 'center' }}>
-            {chartData.length > 0 ? (
+          {/* Interactive Chart Container */}
+          <View style={{ backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333', borderRadius: 24, padding: 20, marginBottom: 24 }}>
+            {chartData.length > 1 ? (
               <LineChart.Provider data={chartData}>
-                <LineChart height={280} width={Dimensions.get('window').width - 80}>
+                <View style={{ marginBottom: 20 }}>
+                  <LineChart.PriceText 
+                    format={({ value }) => {
+                      'worklet';
+                      return value ? `QAR ${parseFloat(value).toFixed(2)}` : '--';
+                    }}
+                    style={{ color: '#D4AF37', fontSize: 28, fontWeight: 'bold' }} 
+                  />
+                  <LineChart.DatetimeText 
+                    style={{ color: '#A0A0A0', fontSize: 14, marginTop: 4 }}
+                    options={{
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    }}
+                  />
+                </View>
+
+                <LineChart height={220} width={Dimensions.get('window').width - 88}>
                   <LineChart.Path color="#D4AF37" width={3}>
                     <LineChart.Gradient color="#D4AF37" opacity={0.2} />
                   </LineChart.Path>
                   <LineChart.CursorCrosshair color="#D4AF37">
-                    <LineChart.Tooltip textStyle={{ color: 'white', fontWeight: 'bold' }} />
+                    <LineChart.Tooltip />
                   </LineChart.CursorCrosshair>
                 </LineChart>
               </LineChart.Provider>
             ) : (
-              <Text style={{ color: '#A0A0A0', textAlign: 'center' }}>Insufficient data for chart</Text>
+              <View style={{ height: 280, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator color="#D4AF37" />
+                <Text style={{ color: '#A0A0A0', marginTop: 12 }}>Optimizing market data...</Text>
+              </View>
             )}
-            
-            <View style={{ position: 'absolute', bottom: 24, left: 24, right: 24, flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)', paddingTop: 16 }}>
-               <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>PREVIOUS CLOSE</Text>
-               <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>MARKET OPEN</Text>
-            </View>
+          </View>
+
+          {/* Market Context Info */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 32 }}>
+            <ChartIcon size={16} color="#D4AF37" />
+            <Text style={{ color: '#F1E5AC', fontSize: 13, fontWeight: '600', marginLeft: 10 }}>24K Gold Price per Gram (QAR)</Text>
           </View>
 
           {/* Insight Box */}
-          <View style={{ marginTop: 32, padding: 24, backgroundColor: 'rgba(212,175,55,0.1)', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.2)' }}>
+          <View style={{ padding: 24, backgroundColor: 'rgba(212,175,55,0.1)', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(212,175,55,0.2)' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
               <Calendar size={18} color="#D4AF37" />
               <Text style={{ color: '#D4AF37', fontWeight: 'bold', marginLeft: 8 }}>Market Insight</Text>
             </View>
             <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 20 }}>
-              The market is showing a bullish trend over the last week. 
-              Prices have stabilized near the 570 QAR resistance level.
+              Viewing historical data for the last {TIMEFRAMES.find(t => t.value === selectedTimeframe)?.label.toLowerCase()}. 
+              Tap and drag your finger across the chart to see specific prices and dates.
             </Text>
           </View>
         </View>
