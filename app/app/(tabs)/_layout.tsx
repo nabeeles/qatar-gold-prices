@@ -1,49 +1,71 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { createMaterialTopTabNavigator, MaterialTopTabNavigationOptions, MaterialTopTabNavigationEventMap } from '@react-navigation/material-top-tabs';
+import { withLayoutContext } from 'expo-router';
 import { LayoutDashboard, Calculator, LineChart, Bell } from 'lucide-react-native';
+import { ParamListBase, TabNavigationState } from '@react-navigation/native';
+
+const { Navigator } = createMaterialTopTabNavigator();
+
+// Create a custom Material Top Tab wrapper for Expo Router
+export const MaterialTopTabs = withLayoutContext<
+  MaterialTopTabNavigationOptions,
+  typeof Navigator,
+  TabNavigationState<ParamListBase>,
+  MaterialTopTabNavigationEventMap
+>(Navigator);
 
 export default function TabLayout() {
   return (
-    <Tabs
+    <MaterialTopTabs
+      tabBarPosition="bottom"
       screenOptions={{
         tabBarActiveTintColor: '#D4AF37',
         tabBarInactiveTintColor: '#666',
         tabBarStyle: {
           backgroundColor: '#0A0A0A',
           borderTopColor: '#222',
-          paddingBottom: 5,
           height: 60,
         },
-        headerShown: false,
+        tabBarIndicatorStyle: {
+          backgroundColor: '#D4AF37',
+          top: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: 'bold',
+          textTransform: 'none',
+          marginBottom: 5,
+        },
+        tabBarShowIcon: true,
       }}>
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="index"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} />,
+          tabBarIcon: ({ color }) => <LayoutDashboard size={20} color={color} />,
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="trends"
         options={{
           title: 'Trends',
-          tabBarIcon: ({ color, size }) => <LineChart size={size} color={color} />,
+          tabBarIcon: ({ color }) => <LineChart size={20} color={color} />,
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="calculator"
         options={{
           title: 'Calculator',
-          tabBarIcon: ({ color, size }) => <Calculator size={size} color={color} />,
+          tabBarIcon: ({ color }) => <Calculator size={20} color={color} />,
         }}
       />
-      <Tabs.Screen
+      <MaterialTopTabs.Screen
         name="alerts"
         options={{
           title: 'Alerts',
-          tabBarIcon: ({ color, size }) => <Bell size={size} color={color} />,
+          tabBarIcon: ({ color }) => <Bell size={20} color={color} />,
         }}
       />
-    </Tabs>
+    </MaterialTopTabs>
   );
 }
