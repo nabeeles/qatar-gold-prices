@@ -6,7 +6,7 @@ A full-stack mobile application to track real-time gold prices in Qatar from mul
 
 ## ✨ Features
 
-- **📍 Multiple Providers:** Scraping prices directly from Al Fardan Exchange, Malabar Gold, Shine Jewelers, and more.
+- **📍 Multiple Providers:** Scraping prices directly from Al Fardan Exchange, Malabar Gold, LivePriceOfGold, and more.
 - **🕒 Real-time Updates:** Stay updated with the latest 24K, 22K, 21K, and 18K gold rates per gram in QAR.
 - **📊 Historical Trends:** Interactive charts showing gold price fluctuations over time.
 - **🔔 Price Alerts:** Set custom targets for when the gold price drops or rises above your specified value.

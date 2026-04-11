@@ -32,8 +32,8 @@ For each active provider in the `providers` table:
 
 The extraction logic in `strategies/puppeteer.js` uses conditional blocks for different providers:
 
-### 🌟 Shine Jewelers
-Uses a **table-based parsing strategy**. It finds the table header containing `24ct`, `22ct`, etc., then maps the corresponding price row (containing `QAR`).
+### 📉 LivePriceOfGold
+Uses a **robust text-segmentation strategy**. It parses table rows and segments the text string (e.g., "24K Gold/gram -0.04 556.790 545.7 584.6") to extract the precise bid price from the data columns.
 
 ### 🏛️ Al Fardan Exchange
 Uses a **label-based search**. It looks for specific text content like `24 KARAT` and extracts the value from its parent or neighboring elements.
@@ -68,11 +68,22 @@ if (pName.includes('New Provider')) {
 ```
 
 ### 3. Test Locally
-Run the scraper manually to verify the new provider:
+Use the specialized test scripts in `scraping-test/` to verify your new strategy without writing to the production database:
 ```bash
-cd backend/scraper
-node index.js
+node scraping-test/test-liveprice.js
 ```
+
+---
+
+## ℹ️ Supported Karats
+
+The system currently scrapes and supports:
+*   **24K** (999 Gold)
+*   **22K** (916 Gold)
+*   **21K** (Used locally in Qatar)
+*   **18K** (750 Gold)
+
+> **Note:** Ensure your Supabase `gold_prices_karat_check` constraint allows for all karats you intend to scrape.
 
 ---
 

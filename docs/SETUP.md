@@ -38,6 +38,18 @@ npx expo start
 > eas build --profile development --platform android
 > ```
 
+### 4. Build for Android (APK)
+To create an installable APK for testing:
+```bash
+eas build --platform android --profile preview
+```
+
+> **CRITICAL:** Standalone builds require environment variables to be set in EAS. If your build crashes on startup, ensure you've run:
+> ```bash
+> eas env:create --name EXPO_PUBLIC_SUPABASE_URL --value "your_url" --environment preview --visibility plaintext
+> eas env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "your_key" --environment preview --visibility secret
+> ```
+
 ---
 
 ## 🕷️ Backend Scraper Setup (`backend/`)
@@ -96,5 +108,5 @@ You can find the database schema in `backend/supabase_schema.sql`. Use the Supab
 After creating the tables, ensure you add at least one active provider to the `providers` table to test the scraper:
 ```sql
 INSERT INTO providers (name, url, is_active)
-VALUES ('Shine Jewelers', 'https://shinejewelers.com.qa/gold-rate-in-qatar/', true);
+VALUES ('LivePriceOfGold', 'https://www.livepriceofgold.com/Qatar-gold-price.html', true);
 ```
