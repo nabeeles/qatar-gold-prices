@@ -134,6 +134,24 @@ async function scrapeWithPuppeteer(provider) {
             return res;
         }
 
+        // --- STRATEGY: LivePriceOfGold ---
+        if (pName.includes('LivePrice')) {
+            const rows = Array.from(document.querySelectorAll('tr'));
+            for (const row of rows) {
+                const rowText = row.innerText.trim();
+                if (rowText.includes('Gold/gram')) {
+                    const parts = rowText.split(/\s+/).filter(p => p.length > 0);
+                    const price = cleanPrice(parts[3]);
+                    if (!price) continue;
+                    if (rowText.includes('24K')) res['24k'] = price;
+                    else if (rowText.includes('22K')) res['22k'] = price;
+                    else if (rowText.includes('21K')) res['21k'] = price;
+                    else if (rowText.includes('18K')) res['18k'] = price;
+                }
+            }
+            return res;
+        }
+
         // --- STRATEGY: Malabar ---
         if (pName.includes('Malabar')) {
             const p24 = document.querySelector('[class*="24kt-price"]');
