@@ -44,11 +44,16 @@ async function runScraper() {
             console.error(`   ❌ Primary strategy failed for ${provider.name}: ${primaryError}`);
         }
 // --- PHASE 2: Intelligent Fallback (Critical Vendors) ---
+// If direct extraction fails or returns partial rates, we pivot to the high-fidelity aggregator (goldpriceqatar.com).
+// This guarantees continuous price availability even if corporate firewalls block cloud IP ranges.
 const isPartial = prices && (!prices['24k'] || !prices['22k']);
-const isMalabar = provider.name.includes('Malabar');
+const isFallbackEligible = provider.name.includes('Malabar') || 
+                           provider.name.includes('Al Fardan') || 
+                           provider.name.includes('Joyalukkas') || 
+                           provider.name.includes('Shine');
 
-if ((!prices || Object.keys(prices).length === 0 || isPartial) && isMalabar) {
-    console.log(`   [Info] Malabar direct extraction is restricted in this region. Pivoting to high-fidelity aggregator...`);
+if ((!prices || Object.keys(prices).length === 0 || isPartial) && isFallbackEligible) {
+    console.log(`   [Info] ${provider.name} direct extraction is restricted or failed in this environment. Pivoting to high-fidelity aggregator...`);
 
     const fallbackProvider = {
         ...provider,
@@ -60,7 +65,7 @@ if ((!prices || Object.keys(prices).length === 0 || isPartial) && isMalabar) {
     if (fallbackPrices && Object.keys(fallbackPrices).length > 0) {
         prices = { ...prices, ...fallbackPrices };
         // Only send alert if BOTH fail (truly down)
-        console.log(`   ✅ Malabar prices synchronized via verified aggregator.`);
+        console.log(`   ✅ ${provider.name} prices synchronized via verified aggregator.`);
     } else {
         await sendFallbackAlert(provider.name, 'All extraction paths (Direct + Aggregator) failed.');
     }
