@@ -78,7 +78,7 @@ async function scrapeWithCheerio(provider) {
      */
     const findPrice = (karatLabel, assignedPrices = []) => {
         let price = null;
-        const startIndex = bodyText.indexOf(karatLabel);
+        const startIndex = bodyText.toLowerCase().indexOf(karatLabel.toLowerCase());
         if (startIndex === -1) return null;
         
         const windowSize = 300;

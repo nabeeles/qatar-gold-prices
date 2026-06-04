@@ -75,6 +75,36 @@ async function scrapeWithPuppeteer(provider) {
         if (extracted) return extracted;
     }
 
+    // --- STRATEGY: Al Fardan Exchange (Direct Product Extraction) ---
+    // Al Fardan Exchange lists individual gold products (minted bars and coins) rather than a simple price chart.
+    // We target the 1 Gram 24 Karat bar price as the base price for 24k gold, and calculate the 22k price per gram
+    // by dividing the total price of the 7.98 Gram Sovereign 22 Karat Gold Coin by its weight.
+    if (provider.name.includes('Al Fardan')) {
+        console.log('   [Al Fardan] Applying high-fidelity direct product extraction strategy...');
+        const alFardanPrices = await page.evaluate(() => {
+            const res = {};
+            const text = document.body.innerText.replace(/\s+/g, ' ');
+            
+            // Extract the 24 Karat 1 Gram bar price (e.g., "1 GRAM GOLD FORTUNA BAR- 24 KARAT 607")
+            const k24Match = text.match(/1\s+GRAM\s+GOLD\s+FORTUNA\s+BAR-\s+24\s+KARAT\s+(\d+)/i);
+            if (k24Match) {
+                res['24k'] = k24Match[1];
+            }
+            
+            // Extract the 22 Karat Sovereign Coin price and calculate price per gram (e.g., "7.98 GRAM GOLD THE SOVEREIGN COIN - 22 KARAT 4175")
+            const k22Match = text.match(/7\.98\s+GRAM\s+GOLD\s+THE\s+SOVEREIGN\s+COIN\s+-\s+22\s+KARAT\s+(\d+)/i);
+            if (k22Match) {
+                const totalPrice = parseFloat(k22Match[1]);
+                const pricePerGram = totalPrice / 7.98;
+                res['22k'] = pricePerGram.toFixed(2);
+            }
+            return res;
+        });
+        if (alFardanPrices && (alFardanPrices['24k'] || alFardanPrices['22k'])) {
+            return alFardanPrices;
+        }
+    }
+
     const prices = await page.evaluate((pName) => {
         const res = {};
         if (!document.body) return { error: 'No document body' };
@@ -93,7 +123,7 @@ async function scrapeWithPuppeteer(provider) {
         };
 
         const findPrice = (karatLabel, assignedPrices = []) => {
-            const index = bodyText.indexOf(karatLabel);
+            const index = bodyText.toLowerCase().indexOf(karatLabel.toLowerCase());
             if (index === -1) return null;
             
             const searchArea = bodyText.substring(index, index + 300);
